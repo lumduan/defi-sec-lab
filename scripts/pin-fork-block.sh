@@ -7,7 +7,9 @@
 #   output: fork.env = FORK_BLOCK_NUMBER + provenance comments (hash, L1 block, timestamp, pinned_at)
 #
 # Requires on the host: docker (compose v2+), jq.
-# After re-pinning while the fork is running:  docker compose up -d --force-recreate anvil
+# After re-pinning while the lab is running:  docker compose up -d --force-recreate
+# (recreates BOTH services: anvil forks at the new block, and the foundry toolbox picks up the new
+#  FORK_BLOCK_NUMBER that scripts assert against; recreating only anvil leaves the toolbox on the old pin)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -86,5 +88,5 @@ echo "wrote fork.env:"
 cat fork.env
 
 if docker compose ps --status running --services 2>/dev/null | grep -qx anvil; then
-  echo "note: anvil is still running on the previous pin. Apply with: docker compose up -d --force-recreate anvil" >&2
+  echo "note: the lab is still running on the previous pin. Apply with: docker compose up -d --force-recreate" >&2
 fi
