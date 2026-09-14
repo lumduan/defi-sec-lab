@@ -1,0 +1,86 @@
+# defi-sec-lab: Foundry toolchain + anvil fork of Arbitrum One.
+# LOCAL ONLY. Read AGENTS.md before changing anything in this file.
+name: defi-sec-lab
+
+# One image for both services, pinned by digest (the tag is for humans; Docker resolves the digest).
+# Why a nightly: stable v1.8.1 cannot eth_call against an Arbitrum fork head ("Excess blob gas not set").
+# The fixes (#16514 blob env for Nitro forks, #16465 Arbitrum receipts/tx types, #16771 L1 block numbers)
+# are in this nightly (built 2026-09-10) and in no stable release as of 2026-09-14.
+# Owner decision 2026-09-14: pin this nightly; move to the first stable release that contains all three.
+x-foundry-image: &foundry-image ghcr.io/foundry-rs/foundry:nightly-fc14f674bd853bc817c308a5202faa5be8df05e7@sha256:9737568248ef9d3613029c7efd4cca51a32ec52b1535248a84e07405df5b1b94
+
+services:
+  anvil:
+    image: *foundry-image
+    container_name: defi-sec-lab-anvil
+    entrypoint: ["/bin/sh", "-c"]
+    # A single string, run via `sh -c`. `$$` is a literal `$`, so variables expand inside the container
+    # shell, never in compose. `: "$${VAR:?msg}"` aborts startup with msg when VAR is empty or unset.
+    command:
+      - |
+        : "$${RPC_URL:?RPC_URL is empty - cp .env.example .env and set it}"
+        : "$${FORK_BLOCK_NUMBER:?no fork pin - run scripts/pin-fork-block.sh}"
+        exec anvil \
+          --host 0.0.0.0 \
+          --port 8545 \
+          --fork-url "$$RPC_URL" \
+          --fork-block-number "$$FORK_BLOCK_NUMBER"
+    environment:
+      FOUNDRY_DISABLE_NIGHTLY_WARNING: "1"   # nightly is pinned deliberately (see x-foundry-image)
+    env_file:
+      - path: .env        # RPC_URL (secret). format raw: compose never interpolates the value.
+        required: true
+        format: raw
+      - path: fork.env    # FORK_BLOCK_NUMBER (committed pin). Optional so the pin script can run first.
+        required: false
+    ports:
+      - "127.0.0.1:8545:8545"   # host loopback only: nothing on the LAN can reach the fork
+    volumes:
+      - anvil-home:/home/foundry   # fork cache: ~/.foundry/cache/rpc/arbitrum/<block>/storage-*.json
+    init: true                     # tini as PID 1 forwards SIGTERM to anvil
+    stop_grace_period: 30s         # anvil flushes the fork cache on SIGTERM; SIGKILL would lose it
+    healthcheck:
+      test: ["CMD", "cast", "block-number", "--rpc-url", "http://127.0.0.1:8545"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+      start_interval: 2s
+    # AGENTS.md hard rule 4: never remove or raise these without the owner asking. Limits are per container.
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 6g
+    memswap_limit: 6g   # equal to memory = no swap on top (unset, Docker would allow another 6g of swap)
+
+  foundry:
+    image: *foundry-image
+    container_name: defi-sec-lab-foundry
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["exec sleep infinity"]   # idle toolbox; use: docker compose exec foundry <forge|cast|chisel> ...
+    working_dir: /lab
+    volumes:
+      - ./:/lab                      # the repo (image user foundry = uid 1000 = host user batt)
+      - foundry-home:/home/foundry   # solc binaries (~/.svm); deliberately separate from anvil's cache
+    environment:
+      ETH_RPC_URL: http://anvil:8545   # cast's default target = the fork (forge uses --fork-url anvil)
+      FOUNDRY_DISABLE_NIGHTLY_WARNING: "1"   # nightly is pinned deliberately (see x-foundry-image)
+    env_file:
+      - path: fork.env   # lets scripts assert they read the pinned block. Never .env in this service.
+        required: false
+    depends_on:
+      anvil:
+        condition: service_healthy
+    init: true   # `sleep` as PID 1 would ignore SIGTERM; tini forwards it
+    # AGENTS.md hard rule 4: never remove or raise these without the owner asking. Limits are per container.
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 6g
+    memswap_limit: 6g
+
+volumes:
+  anvil-home:
+  foundry-home:

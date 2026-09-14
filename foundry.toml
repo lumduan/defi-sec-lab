@@ -1,0 +1,27 @@
+# defi-sec-lab: Foundry configuration.
+# Every fork in this repo targets the LOCAL anvil fork (AGENTS.md hard rules 1 & 3).
+
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+out = "out"
+libs = ["lib"]
+
+# Pinned compiler (setting it also disables auto-detection): same source -> same bytecode over time.
+solc = "0.8.36"
+
+# anvil already caches upstream chain state. forge must NOT cache fork data: it would treat
+# http://anvil:8545 as a remote endpoint and could later replay locally mutated anvil state as if it
+# were real chain state for the same (chain, block) key.
+no_storage_caching = true
+
+[rpc_endpoints]
+# The only endpoint alias in this repo. Usage inside the foundry container:
+#   forge script script/<Name>.s.sol --fork-url anvil     (never with --broadcast)
+#   vm.createSelectFork("anvil")                          (in tests)
+anvil = "http://anvil:8545"
+
+# Intentionally absent:
+#   - eth_rpc_url: the fork target stays explicit on every command.
+#   - [etherscan] and any public RPC endpoint: nothing here can point at a live network.

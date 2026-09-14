@@ -1,0 +1,139 @@
+No files changed, compilation skipped
+Script ran successfully.
+
+== Logs ==
+  === 1. CONTEXT: which chain, which block ===
+  block.chainid                        = 42161
+  ArbSys(0x64).arbBlockNumber() [L2]   = 504982668
+  block.number [EVM view = L1 block]   = 25973747
+  block.timestamp                      = 1789365511
+  fork head (L2) == fork.env FORK_BLOCK_NUMBER  raw=504982668  getter=504982668  OK
+  === 2. ADDRESS GRAPH: provider -> pool proxy -> implementation ===
+  PoolAddressesProvider.getPool()        = 0x794a61358D6845594F94dc1DB02A252b5b4814aD
+  vm.load(pool, EIP-1967 impl slot)      = 0xF05Fd3cC911b4c5E36e53c00354F645E22922C9A
+  code size: proxy 2400 bytes, implementation 22442 bytes
+  POOL_REVISION() (constant in impl code) = 11 -> aave-v3-origin v3.7.0
+  slot 0 lastInitializedRevision == POOL_REVISION()  raw=11  getter=11  OK
+  === 3. OBSERVE: which storage slots does getReserveData(asset) read? (vm.record / vm.accesses) ===
+  _reserves mapping slot derived from reads == source layout (52)  raw=52  getter=52  OK
+  base = keccak256(abi.encode(asset, 52)) = 0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af4f
+  Pool proxy: 8 SLOAD ops over 8 unique slots
+    0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc <- EIP-1967 implementation slot (proxy routing)
+      = 0x000000000000000000000000f05fd3cc911b4c5e36e53c00354f645e22922c9a
+    0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af4f <- _reserves[asset] base+0
+      = 0x100000000000000000000103e800ee6b28000d693a4003e8850629041e781d4c
+    0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af50 <- _reserves[asset] base+1
+      = 0x0000000000162d96b677fa34fe7e5e0b0000000003cea2840c4e30285542b8b5
+    0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af51 <- _reserves[asset] base+2
+      = 0x00000000001e194faa6af658ed86e4bd00000000040360a7c94b6dccbd71f3e6
+    0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af52 <- _reserves[asset] base+3
+      = 0x000000000000000000000c006aa78afb0000000000000000000000001bd5eaa8
+    0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af53 <- _reserves[asset] base+4
+      = 0x000000000000000000000000724dc807b04555b71ed48a6896b6f41593b8c637
+    0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af55 <- _reserves[asset] base+6
+      = 0x000000000000000000000000f611aeb5013fd2c0511c9cd55c7dc5c1140741a6
+    0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af57 <- _reserves[asset] base+8
+      = 0x000000000000000000001d0506e9ca2d00000000000000000000000fc27c355a
+  PoolAddressesProvider: 1 SLOAD ops over 1 unique slots
+    0xb035f62398c2f37b04e1eceb7c8e682f004b880b099118069ef0a8d3cb0fcdae <- _addresses["MOCK_STABLE_DEBT"] (mapping slot 2)
+      = 0x000000000000000000000000d94112b5b62d53c9402e7a60289c6810def1dc9b
+  interestRateStrategyAddress = 0x429F16dBA3B9e1900087Cbaa7b50D38Bc60fB73F <- no SLOAD: immutable in implementation bytecode
+  === 4. RAW WORDS of _reserves[asset] (base+0..base+9), decoded and cross-checked ===
+  base+0  slot 0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af4f  configuration bitmap (decoded in section 5)
+          raw  0x100000000000000000000103e800ee6b28000d693a4003e8850629041e781d4c
+    configuration                  [0-255]  raw=7237005577332262213973186942896424937551795037297819859365743234882012192076  getter=7237005577332262213973186942896424937551795037297819859365743234882012192076  OK
+  base+1  slot 0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af50  liquidityIndex [0-127] | currentLiquidityRate [128-255]
+          raw  0x0000000000162d96b677fa34fe7e5e0b0000000003cea2840c4e30285542b8b5
+    liquidityIndex (ray)           [0-127]  raw=1178261207531790554775074997  getter=1178261207531790554775074997  OK
+    currentLiquidityRate (ray/yr)  [128-255]  raw=26811654683114774957284875  getter=26811654683114774957284875  OK
+  base+2  slot 0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af51  variableBorrowIndex [0-127] | currentVariableBorrowRate [128-255]
+          raw  0x00000000001e194faa6af658ed86e4bd00000000040360a7c94b6dccbd71f3e6
+    variableBorrowIndex (ray)      [0-127]  raw=1242023259037647708854809574  getter=1242023259037647708854809574  OK
+    currentVariableBorrowRate      [128-255]  raw=36387303323190635207779517  getter=36387303323190635207779517  OK
+  base+3  slot 0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af52  deficit [0-127] | lastUpdateTimestamp [128-167] | id [168-183] | liquidationGracePeriodUntil [184-223] | unused [224-255]
+          raw  0x000000000000000000000c006aa78afb0000000000000000000000001bd5eaa8
+    deficit vs getReserveDeficit() [0-127]  raw=467004072  getter=467004072  OK
+    lastUpdateTimestamp            [128-167]  raw=1789364987  getter=1789364987  OK
+    id                             [168-183]  raw=12  getter=12  OK
+    liquidationGracePeriodUntil    [184-223] = 0 (no legacy getter)
+    unused bits must be zero       [224-255]  raw=0  getter=0  OK
+    note: getReserveData().currentStableBorrowRate = 0 is hardcoded; bits 0-127 of this word now hold deficit
+  base+4  slot 0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af53  aTokenAddress [0-159]
+          raw  0x000000000000000000000000724dc807b04555b71ed48a6896b6f41593b8c637
+    aTokenAddress                  [0-159]  raw=652559530327671618494870864823579735620830414391  getter=652559530327671618494870864823579735620830414391  OK
+    bits above the address are zero [160-255]  raw=0  getter=0  OK
+  base+5  slot 0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af54  DEPRECATED v3.2 stableDebtTokenAddress (never read by getters)
+          raw  0x0000000000000000000000000000000000000000000000000000000000000000
+    getReserveData().stableDebtTokenAddress = 0xd94112B5B62d53C9402e7A60289c6810dEF1dC9B comes from provider.getAddress("MOCK_STABLE_DEBT"), not this word
+  base+6  slot 0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af55  variableDebtTokenAddress [0-159]
+          raw  0x000000000000000000000000f611aeb5013fd2c0511c9cd55c7dc5c1140741a6
+    variableDebtTokenAddress       [0-159]  raw=1404806061421560699768337356524769373396731904422  getter=1404806061421560699768337356524769373396731904422  OK
+  base+7  slot 0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af56  DEPRECATED v3.4 interestRateStrategyAddress (never read by getters)
+          raw  0x000000000000000000000000429f16dba3b9e1900087cbaa7b50d38bc60fb73f
+    stored value equals the immutable strategy: yes
+  base+8  slot 0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af57  accruedToTreasury (scaled) [0-127] | virtualUnderlyingBalance [128-255]
+          raw  0x000000000000000000001d0506e9ca2d00000000000000000000000fc27c355a
+    accruedToTreasury (scaled)     [0-127]  raw=67687429466  getter=67687429466  OK
+    virtualUnderlyingBalance       [128-255]  raw=31907428026925  getter=31907428026925  OK
+  base+9  slot 0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af58  DEPRECATED isolationModeTotalDebt [0-127] | DEPRECATED v3.4 virtualUnderlyingBalance [128-255]
+          raw  0x0000000000000000000000000000000000000000000000000000000000000000
+    getReserveData(): unbacked = 0, isolationModeTotalDebt = 0 (both hardcoded)
+  === 5. CONFIGURATION BITMAP (base+0), bit positions from ReserveConfiguration.sol@v3.7.0 ===
+    ltv (bps)                      [0-15]  raw=7500  getter=7500  OK
+    liquidationThreshold (bps)     [16-31]  raw=7800  getter=7800  OK
+    liquidationBonus (bps)         [32-47]  raw=10500  getter=10500  OK
+    decimals                       [48-55]  raw=6  getter=6  OK
+    reserveFactor (bps)            [64-79]  raw=1000  getter=1000  OK
+    liquidationProtocolFee (bps)   [152-167]  raw=1000  getter=1000  OK
+    isActive                       [56]  raw=1  getter=1  OK
+    isFrozen                       [57]  raw=0  getter=0  OK
+    borrowingEnabled               [58]  raw=1  getter=1  OK
+    isPaused                       [60]  raw=0  getter=0  OK
+    flashLoanEnabled               [63] = 1
+    borrowCap (whole tokens)       [80-115]  raw=225000000  getter=225000000  OK
+    supplyCap (whole tokens)       [116-151]  raw=250000000  getter=250000000  OK
+    bits left by removed fields (printed, not asserted):
+      [59] pre-3.2 stableBorrowRateEnabled = 0 | [61] borrowableInIsolation = 0 | [62] siloedBorrowing = 0
+      [168-251] eMode/unbackedMintCap/debtCeiling = 1 | [252] virtualAccActive (deprecated v3.4) = 1 | [253-255] = 0
+  === 6. TOTAL SUPPLY = aToken._totalSupply (scaled) x normalizedIncome(now) ===
+  aToken slot 54 _totalSupply == scaledTotalSupply()  raw=149310754465165  getter=149310754465165  OK
+  aToken.totalSupply() read set: token 3 slots, pool 3 slots, plus block.timestamp
+    token 0x724dc807b04555b71ed48a6896b6F41593b8C637 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc <- EIP-1967 implementation slot (proxy routing)
+    token 0x724dc807b04555b71ed48a6896b6F41593b8C637 0x000000000000000000000000000000000000000000000000000000000000003d <- _underlyingAsset
+    token 0x724dc807b04555b71ed48a6896b6F41593b8C637 0x0000000000000000000000000000000000000000000000000000000000000036 <- _totalSupply (scaled)
+    pool  0x794a61358D6845594F94dc1DB02A252b5b4814aD 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc <- EIP-1967 implementation slot (proxy routing)
+    pool  0x794a61358D6845594F94dc1DB02A252b5b4814aD 0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af52 <- _reserves[asset] base+3
+    pool  0x794a61358D6845594F94dc1DB02A252b5b4814aD 0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af50 <- _reserves[asset] base+1
+  dt = block.timestamp - lastUpdateTimestamp = 524 s
+  linear = RAY + rate*dt/365d = 1000000445500604196858893886
+  normalizedIncome rebuilt == getReserveNormalizedIncome()  raw=1178261732447870411908314374  getter=1178261732447870411908314374  OK
+  totalSupply rebuilt (rayMulFloor) == aToken.totalSupply()  raw=175927148229223  getter=175927148229223  OK
+  TOTAL SUPPLY = 175927148.229223   (scaled: 149310754.465165)
+  accrued by reads alone since lastUpdateTimestamp = 78.375615
+  === 7. TOTAL VARIABLE DEBT = vToken._totalSupply (scaled) x normalizedDebt(now) ===
+  vToken slot 58 _totalSupply == scaledTotalSupply()  raw=116019494818281  getter=116019494818281  OK
+  vToken.totalSupply() read set: token 3 slots, pool 3 slots, plus block.timestamp
+    token 0xf611aEb5013fD2c0511c9CD55c7dc5C1140741A6 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc <- EIP-1967 implementation slot (proxy routing)
+    token 0xf611aEb5013fD2c0511c9CD55c7dc5C1140741A6 0x0000000000000000000000000000000000000000000000000000000000000037 <- _underlyingAsset
+    token 0xf611aEb5013fD2c0511c9CD55c7dc5C1140741A6 0x000000000000000000000000000000000000000000000000000000000000003a <- _totalSupply (scaled)
+    pool  0x794a61358D6845594F94dc1DB02A252b5b4814aD 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc <- EIP-1967 implementation slot (proxy routing)
+    pool  0x794a61358D6845594F94dc1DB02A252b5b4814aD 0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af52 <- _reserves[asset] base+3
+    pool  0x794a61358D6845594F94dc1DB02A252b5b4814aD 0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af51 <- _reserves[asset] base+2
+  x = rate*dt/365d = 604608921275744953350; compounded = RAY + x + x*(x/2 + x*x/6) = 1000000604609104051755632455
+  normalizedDebt rebuilt == getReserveNormalizedVariableDebt()  raw=1242024009976217567048592388  getter=1242024009976217567048592388  OK
+  totalDebt rebuilt (rayMulCeil) == vToken.totalSupply()  raw=144098998189617  getter=144098998189617  OK
+  TOTAL VARIABLE DEBT = 144098998.189617   (scaled: 116019494.818281)
+  accrued by reads alone since lastUpdateTimestamp = 87.123514
+  === 8. RATES (annual, in ray) and adjacent components ===
+  supply currentLiquidityRate      = 2.6811 % APR
+  borrow currentVariableBorrowRate = 3.6387 % APR
+  both last written at 1789364987, 524 s before this block; they change only on state-changing actions
+  components (underlying units unless noted):
+    aToken.totalSupply()           = 175927148.229223
+    vToken.totalSupply()           = 144098998.189617
+    virtualUnderlyingBalance       = 31907428.026925
+    accruedToTreasury (SCALED)     = 67687.429466  (not in aToken totalSupply until mintToTreasury)
+    deficit                        = 467.004072
+  === SUMMARY ===
+  cross-checks: 35 OK, 0 MISMATCH
+  read-only: nothing was broadcast

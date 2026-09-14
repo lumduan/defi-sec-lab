@@ -1,0 +1,33 @@
+# ---------------------------------------------------------------------------
+# Secrets & key material: must never be committed (AGENTS.md hard rule 2)
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.keystore
+keystore/
+keystores/
+CLAUDE.local.md
+
+# ---------------------------------------------------------------------------
+# Foundry build artifacts & caches
+# ---------------------------------------------------------------------------
+out/
+cache/
+# forge script run records (this lab never uses --broadcast; ignored regardless)
+broadcast/
+
+# ---------------------------------------------------------------------------
+# anvil state dumps (large; regenerate from fork.env instead)
+# ---------------------------------------------------------------------------
+state/
+*.state.json
+
+# ---------------------------------------------------------------------------
+# OS / editor
+# ---------------------------------------------------------------------------
+.DS_Store
+.idea/
+.vscode/
