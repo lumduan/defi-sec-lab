@@ -1,0 +1,67 @@
+# Secret scanning for a PUBLIC repo. Runs on every push and every pull request (including PRs from forks,
+# which run with a read-only token and no secrets; this workflow needs none). Jobs `gitleaks` and
+# `pre-commit` are required status checks on main (repository ruleset), so nothing merges unscanned.
+name: security
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GITLEAKS_VERSION: "8.30.1"
+  # sha256 of gitleaks_8.30.1_linux_x64.tar.gz, from the release's gitleaks_8.30.1_checksums.txt
+  GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+
+jobs:
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # full history: every commit, every branch
+          persist-credentials: false
+
+      - name: Install gitleaks (pinned version, checksum-verified)
+        run: |
+          curl -sSfL -o gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gitleaks.tar.gz" | sha256sum --check --strict
+          tar -xzf gitleaks.tar.gz gitleaks
+          sudo install -m 0755 gitleaks /usr/local/bin/gitleaks
+          rm gitleaks gitleaks.tar.gz
+          gitleaks version
+
+      - name: Scan full git history with repo rules
+        run: gitleaks git . --config .gitleaks.toml --redact --verbose --no-banner --exit-code 1
+
+  pre-commit:
+    name: pre-commit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+
+      - name: Install hook tooling (hash-pinned)
+        run: python -m pip install --require-hashes -r tools/hooks/requirements.txt
+
+      - name: Run all hooks on all files
+        # gitleaks-staged only scans staged changes (none in CI); the `gitleaks` job scans full history.
+        env:
+          SKIP: gitleaks-staged
+        run: pre-commit run --all-files --show-diff-on-failure

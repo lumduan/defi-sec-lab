@@ -6,10 +6,13 @@
 !.env.example
 *.key
 *.pem
+*.p12
+*.pfx
 *.keystore
 keystore/
 keystores/
 CLAUDE.local.md
+# (.secrets.baseline is intentionally TRACKED: detect-secrets' audited baseline of known non-secrets)
 
 # ---------------------------------------------------------------------------
 # Foundry build artifacts & caches
@@ -24,6 +27,24 @@ broadcast/
 # ---------------------------------------------------------------------------
 state/
 *.state.json
+
+# ---------------------------------------------------------------------------
+# learn/ app build artifacts (Next.js web, FastAPI api)
+# ---------------------------------------------------------------------------
+node_modules/
+.next/
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage/
+htmlcov/
 
 # ---------------------------------------------------------------------------
 # OS / editor

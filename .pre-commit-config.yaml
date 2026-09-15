@@ -1,0 +1,46 @@
+# Secret & safety hooks for defi-sec-lab (a PUBLIC repo).
+#
+# Local:  .githooks/pre-commit runs these inside the pinned hooks image (enable once: scripts/install-hooks.sh).
+# CI:     .github/workflows/security.yml runs them on every push and pull request.
+# Without Docker: `pip install pre-commit` and put gitleaks 8.30.1 on PATH, then `pre-commit install`.
+minimum_pre_commit_version: "4.4.0"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ["--maxkb=1024", "--enforce-all"]
+      - id: detect-private-key
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: check-json
+        exclude: '(^|/)tsconfig[^/]*\.json$'  # tsconfig allows comments (JSONC)
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: 01886c8a910c64595c47f186ca1ffc0b77fa5458  # frozen: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ["--baseline", ".secrets.baseline"]
+
+  - repo: local
+    hooks:
+      - id: gitleaks-staged
+        name: gitleaks (staged changes; repo rules in .gitleaks.toml)
+        entry: gitleaks git --pre-commit --staged --redact --verbose --no-banner --config .gitleaks.toml
+        language: unsupported
+        pass_filenames: false
+        stages: [pre-commit]
+
+      - id: forbid-env-files
+        name: forbid .env files (only .env.example may be committed)
+        language: fail
+        entry: ".env files must never be committed. Keep placeholders in .env.example"
+        files: '(^|/)\.env($|\.)'
+        exclude: '(^|/)\.env\.example$'
+
+      - id: forbid-key-files
+        name: forbid private-key / keystore files
+        language: fail
+        entry: "private key material must never be committed"
+        files: '\.(pem|key|p12|pfx|keystore)$|(^|/)keystores?/'

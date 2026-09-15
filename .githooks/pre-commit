@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# pre-commit: run the repo's secret & safety hooks (.pre-commit-config.yaml) inside the pinned hooks image.
+# Nothing is installed on the host. FAILS CLOSED: if the scan cannot run, the commit is blocked.
+# Enable once per clone: scripts/install-hooks.sh
+set -euo pipefail
+root="$(git rev-parse --show-toplevel)"
+
+fail_closed() {
+  echo "pre-commit: BLOCKED. The secret scan could not run: $1" >&2
+  echo "pre-commit: fix Docker, or bypass knowingly with: git commit --no-verify (CI will still scan)" >&2
+  exit 1
+}
+command -v docker >/dev/null 2>&1 || fail_closed "docker not found"
+image="$("$root/scripts/hooks-image.sh")" || fail_closed "could not build the hooks image"
+
+args=(--rm --user "$(id -u):$(id -g)" -v "$root:$root" -w "$root" -v defi-sec-lab-precommit-cache:/cache)
+[ -t 1 ] && args+=(-t)
+# The repo is mounted at the same absolute path, so git's own env paths resolve inside the container.
+[ -n "${GIT_INDEX_FILE:-}" ] && args+=(-e "GIT_INDEX_FILE=$GIT_INDEX_FILE")
+[ -n "${SKIP:-}" ] && args+=(-e "SKIP=$SKIP")
+
+exec docker run "${args[@]}" "$image" pre-commit run --hook-stage pre-commit

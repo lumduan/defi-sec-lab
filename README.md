@@ -19,6 +19,7 @@ understand the mechanism and the input/output relationships behind a number, not
 | [`foundry.toml`](foundry.toml) | Pinned solc. The only RPC alias is `anvil`. Forge's fork storage caching is off. |
 | [`script/ReadAaveReserve.s.sol`](script/ReadAaveReserve.s.sol) | Read-only reader for one Aave V3 reserve: raw slots → decoded fields → cross-checks against the protocol's getters → totals rebuilt from raw state. |
 | [`notes/`](notes/) | The lab notebook. Entries record evidence (commands, raw words, source links) and leave the interpretation to the owner. |
+| [`.gitleaks.toml`](.gitleaks.toml), [`.pre-commit-config.yaml`](.pre-commit-config.yaml), [`.secrets.baseline`](.secrets.baseline), [`.githooks/`](.githooks/), [`tools/hooks/`](tools/hooks/), [`.github/workflows/security.yml`](.github/workflows/security.yml) | Secret-scanning controls. See [Security controls](#security-controls-enforced-not-assumed). |
 
 ## How it fits together
 
@@ -98,6 +99,47 @@ Foundry is pinned by image digest to `nightly-fc14f674` (2026-09-10).
 - Stable v1.8.1 cannot `eth_call` against an Arbitrum fork head (`Excess blob gas not set`).
 - The fixes (foundry-rs/foundry#16514, #16465, #16771) were nightly-only when this was written.
 - Move the pin to the first stable release that contains all three.
+
+## Security controls (enforced, not assumed)
+
+This repository is public, so secret handling is enforced by tools rather than by rules in a document.
+Every layer below has been tested.
+
+| Layer | What it enforces | Can it be skipped? |
+|---|---|---|
+| `.gitignore` | `.env` files (except `.env.example`), key files and build output are never staged by accident. | `git add -f` |
+| pre-commit hook ([`.githooks/pre-commit`](.githooks/pre-commit)) | Runs [`.pre-commit-config.yaml`](.pre-commit-config.yaml) inside a pinned container. See the list below. It fails closed if the scan can't run. | `git commit --no-verify` |
+| pre-push hook ([`.githooks/pre-push`](.githooks/pre-push)) | gitleaks over every commit being pushed, which catches commits made with `--no-verify`. | `git push --no-verify` |
+| CI ([`.github/workflows/security.yml`](.github/workflows/security.yml)) | On every push and pull request, including PRs from forks. See the list below. Both jobs are **required checks** on `main`. | **No.** A pull request can't merge until both pass. |
+
+The pre-commit hook runs:
+- **gitleaks** on the staged changes, using this repo's rules ([`.gitleaks.toml`](.gitleaks.toml));
+- **detect-secrets** against the audited [`.secrets.baseline`](.secrets.baseline);
+- guards that reject `.env` files, key files, and files over 1 MB.
+
+The CI jobs run:
+- **gitleaks** over the full git history, using a pinned and checksum-verified binary;
+- every pre-commit hook on every file.
+
+**Why custom gitleaks rules?** As of 2026-09, neither gitleaks' default rules nor GitHub push protection detect:
+- RPC URLs with an embedded API key (Alchemy, Infura, QuickNode, …);
+- private keys assigned to names like `DEPLOYER_PK`.
+
+[`scripts/test-secret-rules.sh`](scripts/test-secret-rules.sh) proves each rule fires on a generated fake secret.
+It also proves each rule stays silent on lookalikes: the local fork URL, anvil's public dev keys, block hashes and
+addresses.
+
+Enable the hooks in your clone. This needs Docker and installs nothing on the host:
+
+```bash
+scripts/install-hooks.sh        # sets core.hooksPath=.githooks and builds the pinned hooks image
+scripts/test-secret-rules.sh    # optional: self-test the gitleaks rules
+```
+
+- **Without Docker:** `pip install pre-commit`, put gitleaks 8.30.1 on your PATH, then run `pre-commit install`.
+- **When a new file legitimately trips detect-secrets:** update the baseline with
+  `detect-secrets scan --baseline .secrets.baseline`, then audit it with `detect-secrets audit .secrets.baseline`,
+  in the same pull request.
 
 ## Safety notes for anyone using this repo
 

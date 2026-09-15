@@ -1,0 +1,3 @@
+# Hooks image tooling (compiled to requirements.txt with hashes; install with --require-hashes).
+pre-commit==4.6.2
+detect-secrets==1.5.0
