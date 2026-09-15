@@ -1,0 +1,954 @@
+{
+  "schema": "defi-sec-lab/inspection@1",
+  "source": "fork",
+  "generated_at": "2026-09-15T09:13:39Z",
+  "network": {
+    "name": "Arbitrum One",
+    "chain_id": 42161
+  },
+  "block": {
+    "tag": "0x1e196c8c",
+    "number": 504982668,
+    "timestamp_iso": "2026-09-14T05:58:31Z"
+  },
+  "asset": {
+    "symbol": "USDC",
+    "address": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+    "kind": "native (Circle-issued)"
+  },
+  "citations": [
+    {
+      "id": "aave-docs",
+      "label": "Aave docs: addresses come from the Aave Address Book",
+      "url": "https://aave.com/docs/resources/addresses"
+    },
+    {
+      "id": "book-provider",
+      "label": "Address book: POOL_ADDRESSES_PROVIDER",
+      "url": "https://github.com/aave-dao/aave-address-book/blob/02748a20592a019e834aee193b6c40c9bc7bd059/src/AaveV3Arbitrum.sol#L8-L9"
+    },
+    {
+      "id": "book-pool",
+      "label": "Address book: POOL",
+      "url": "https://github.com/aave-dao/aave-address-book/blob/02748a20592a019e834aee193b6c40c9bc7bd059/src/AaveV3Arbitrum.sol#L12"
+    },
+    {
+      "id": "book-usdcn",
+      "label": "Address book: USDCn_UNDERLYING (native USDC)",
+      "url": "https://github.com/aave-dao/aave-address-book/blob/02748a20592a019e834aee193b6c40c9bc7bd059/src/AaveV3Arbitrum.sol#L407"
+    },
+    {
+      "id": "book-usdcn-atoken",
+      "label": "Address book: USDCn_A_TOKEN",
+      "url": "https://github.com/aave-dao/aave-address-book/blob/02748a20592a019e834aee193b6c40c9bc7bd059/src/AaveV3Arbitrum.sol#L412"
+    },
+    {
+      "id": "book-usdcn-vtoken",
+      "label": "Address book: USDCn_V_TOKEN",
+      "url": "https://github.com/aave-dao/aave-address-book/blob/02748a20592a019e834aee193b6c40c9bc7bd059/src/AaveV3Arbitrum.sol#L415"
+    },
+    {
+      "id": "book-usdce",
+      "label": "Address book: USDC_UNDERLYING (bridged USDC.e)",
+      "url": "https://github.com/aave-dao/aave-address-book/blob/02748a20592a019e834aee193b6c40c9bc7bd059/src/AaveV3Arbitrum.sol#L177"
+    },
+    {
+      "id": "circle-docs",
+      "label": "Circle: native USDC contract addresses",
+      "url": "https://developers.circle.com/stablecoins/usdc-contract-addresses"
+    },
+    {
+      "id": "arbitrum-docs",
+      "label": "Arbitrum docs: native USDC vs bridged USDC.e",
+      "url": "https://docs.arbitrum.io/arbitrum-bridge/usdc-arbitrum-one"
+    },
+    {
+      "id": "eip1967",
+      "label": "Aave proxy: EIP-1967 implementation slot",
+      "url": "https://github.com/aave-dao/aave-v3-origin/blob/v3.7.0/src/contracts/dependencies/openzeppelin/upgradeability/BaseUpgradeabilityProxy.sol#L22-L25"
+    },
+    {
+      "id": "circle-proxy",
+      "label": "Circle proxy: ZeppelinOS implementation slot",
+      "url": "https://github.com/circlefin/stablecoin-evm/blob/fc85788bc7c23cefe3df1a757133048bfddadeaa/contracts/upgradeability/UpgradeabilityProxy.sol#L42-L55"
+    },
+    {
+      "id": "pool-inheritance",
+      "label": "Pool is VersionedInitializable, PoolStorage, ...",
+      "url": "https://github.com/aave-dao/aave-v3-origin/blob/v3.7.0/src/contracts/protocol/pool/Pool.sol#L38"
+    },
+    {
+      "id": "versioned-initializable",
+      "label": "VersionedInitializable storage (slots 0, 1, gap 2-51)",
+      "url": "https://github.com/aave-dao/aave-v3-origin/blob/v3.7.0/src/contracts/misc/aave-upgradeability/VersionedInitializable.sol#L29"
+    },
+    {
+      "id": "pool-storage",
+      "label": "PoolStorage._reserves (slot 52)",
+      "url": "https://github.com/aave-dao/aave-v3-origin/blob/v3.7.0/src/contracts/protocol/pool/PoolStorage.sol#L21"
+    },
+    {
+      "id": "reserve-data",
+      "label": "DataTypes.ReserveData (storage layout)",
+      "url": "https://github.com/aave-dao/aave-v3-origin/blob/v3.7.0/src/contracts/protocol/libraries/types/DataTypes.sol#L42"
+    },
+    {
+      "id": "reserve-data-legacy",
+      "label": "DataTypes.ReserveDataLegacy (getReserveData ABI)",
+      "url": "https://github.com/aave-dao/aave-v3-origin/blob/v3.7.0/src/contracts/protocol/libraries/types/DataTypes.sol#L9"
+    },
+    {
+      "id": "get-reserve-data",
+      "label": "Pool.getReserveData body",
+      "url": "https://github.com/aave-dao/aave-v3-origin/blob/v3.7.0/src/contracts/protocol/pool/Pool.sol#L438"
+    },
+    {
+      "id": "reserve-configuration",
+      "label": "ReserveConfiguration bit positions",
+      "url": "https://github.com/aave-dao/aave-v3-origin/blob/v3.7.0/src/contracts/protocol/libraries/configuration/ReserveConfiguration.sol#L13-L53"
+    }
+  ],
+  "stages": [
+    {
+      "id": "chain",
+      "title": "Are we in the real bank?",
+      "client": "fork",
+      "client_version": "anvil/v1.8.2",
+      "block": {
+        "number": 504982668,
+        "number_hex": "0x1e196c8c",
+        "hash": "0xb709093d1bb7a3b51cdecb480ad79e96af60a7aeab4ccf5313216792a11bc079",
+        "timestamp": 1789365511,
+        "timestamp_hex": "0x6aa78d07",
+        "timestamp_iso": "2026-09-14T05:58:31Z",
+        "l1_block_number": 25973747,
+        "l1_block_number_hex": "0x18c53f3"
+      },
+      "exchanges": [
+        {
+          "method": "eth_chainId",
+          "params": [],
+          "result": "0xa4b1",
+          "decoded": "42161"
+        },
+        {
+          "method": "eth_blockNumber",
+          "params": [],
+          "result": "0x1e196c8c",
+          "decoded": "504982668"
+        },
+        {
+          "method": "web3_clientVersion",
+          "params": [],
+          "result": "anvil/v1.8.2",
+          "decoded": "anvil/v1.8.2"
+        },
+        {
+          "method": "eth_getBlockByNumber",
+          "params": [
+            "0x1e196c8c",
+            false
+          ],
+          "result": {
+            "number": "0x1e196c8c",
+            "hash": "0xb709093d1bb7a3b51cdecb480ad79e96af60a7aeab4ccf5313216792a11bc079",
+            "parentHash": "0xdb4d0894ecc8f08b445e8b9d2ff07a107d310b922e3ded85393b655affd730a0",
+            "timestamp": "0x6aa78d07",
+            "l1BlockNumber": "0x18c53f3"
+          },
+          "decoded": "block 504982668, timestamp 2026-09-14T05:58:31Z",
+          "note": "selected fields"
+        }
+      ],
+      "checks": [
+        {
+          "id": "chain_id",
+          "label": "Chain id is Arbitrum One",
+          "expected": "42161",
+          "actual": "42161",
+          "pass": true,
+          "status": "pass",
+          "note": null
+        },
+        {
+          "id": "head_is_pin",
+          "label": "Fork head is the committed pin (fork.env FORK_BLOCK_NUMBER)",
+          "expected": "504982668",
+          "actual": "504982668",
+          "pass": true,
+          "status": "pass",
+          "note": null
+        },
+        {
+          "id": "hash_is_pin",
+          "label": "Block hash equals the committed hash (fork.env FORK_BLOCK_HASH)",
+          "expected": "0xb709093d1bb7a3b51cdecb480ad79e96af60a7aeab4ccf5313216792a11bc079",
+          "actual": "0xb709093d1bb7a3b51cdecb480ad79e96af60a7aeab4ccf5313216792a11bc079",
+          "pass": true,
+          "status": "pass",
+          "note": null
+        },
+        {
+          "id": "hash_is_real_chain",
+          "label": "Real Arbitrum chain has the same hash at this height (via RPC_URL)",
+          "expected": "0xb709093d1bb7a3b51cdecb480ad79e96af60a7aeab4ccf5313216792a11bc079",
+          "actual": "0xb709093d1bb7a3b51cdecb480ad79e96af60a7aeab4ccf5313216792a11bc079",
+          "pass": true,
+          "status": "pass",
+          "note": null
+        }
+      ]
+    },
+    {
+      "id": "proxies",
+      "title": "Storefront vs backroom",
+      "slot_derivations": {
+        "eip1967": {
+          "preimage": "eip1967.proxy.implementation",
+          "keccak256": "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbd",
+          "minus_one": true,
+          "slot": "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
+          "citation": "eip1967"
+        },
+        "zeppelinos": {
+          "preimage": "org.zeppelinos.proxy.implementation",
+          "keccak256": "0x7050c9e0f4ca769c69bd3a8ef740bc37934f8e2c036e5a723fd8ee048ed3f8c3",
+          "minus_one": false,
+          "slot": "0x7050c9e0f4ca769c69bd3a8ef740bc37934f8e2c036e5a723fd8ee048ed3f8c3",
+          "citation": "circle-proxy"
+        }
+      },
+      "registry": {
+        "call": "PoolAddressesProvider.getPool()",
+        "to": "0xa97684ead0e402dC232d5A977953DF7ECBaB3CDb",
+        "selector": "0x026b1d5f",
+        "result": "0x000000000000000000000000794a61358d6845594f94dc1db02a252b5b4814ad",
+        "decoded": "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
+        "address_book": "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
+        "match": true
+      },
+      "rows": [
+        {
+          "key": "pool",
+          "label": "Aave V3 Pool",
+          "address": "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
+          "citation": "book-pool",
+          "proxy": {
+            "code_size": 2400,
+            "code_head": "0x60806040526004361061005a5760003560e01c80635c60da1b11610043578063",
+            "dispatcher_selectors": [
+              {
+                "signature": "implementation()",
+                "selector": "0x5c60da1b",
+                "push4_found": true
+              },
+              {
+                "signature": "upgradeTo(address)",
+                "selector": "0x3659cfe6",
+                "push4_found": true
+              },
+              {
+                "signature": "upgradeToAndCall(address,bytes)",
+                "selector": "0x4f1ef286",
+                "push4_found": true
+              },
+              {
+                "signature": "admin()",
+                "selector": "0xf851a440",
+                "push4_found": true
+              },
+              {
+                "signature": "changeAdmin(address)",
+                "selector": "0x8f283970",
+                "push4_found": false
+              }
+            ]
+          },
+          "slots": {
+            "eip1967": "0x000000000000000000000000f05fd3cc911b4c5e36e53c00354f645e22922c9a",
+            "zeppelinos": "0x0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "implementation_slot": "eip1967",
+          "implementation": {
+            "address": "0xF05Fd3cC911b4c5E36e53c00354F645E22922C9A",
+            "code_size": 22442
+          },
+          "edge": false
+        },
+        {
+          "key": "atoken",
+          "label": "aToken (aArbUSDCn)",
+          "address": "0x724dc807b04555b71ed48a6896b6F41593b8C637",
+          "citation": "book-usdcn-atoken",
+          "proxy": {
+            "code_size": 2015,
+            "code_head": "0x60806040526004361061004a5760003560e01c80633659cfe614610054578063",
+            "dispatcher_selectors": [
+              {
+                "signature": "implementation()",
+                "selector": "0x5c60da1b",
+                "push4_found": true
+              },
+              {
+                "signature": "upgradeTo(address)",
+                "selector": "0x3659cfe6",
+                "push4_found": true
+              },
+              {
+                "signature": "upgradeToAndCall(address,bytes)",
+                "selector": "0x4f1ef286",
+                "push4_found": true
+              },
+              {
+                "signature": "admin()",
+                "selector": "0xf851a440",
+                "push4_found": true
+              },
+              {
+                "signature": "changeAdmin(address)",
+                "selector": "0x8f283970",
+                "push4_found": false
+              }
+            ]
+          },
+          "slots": {
+            "eip1967": "0x000000000000000000000000adcb7e98a462aa2375d03145083ee68a2148f077",
+            "zeppelinos": "0x0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "implementation_slot": "eip1967",
+          "implementation": {
+            "address": "0xadcb7e98A462AA2375D03145083eE68A2148F077",
+            "code_size": 10477
+          },
+          "edge": false
+        },
+        {
+          "key": "vtoken",
+          "label": "Variable debt token (variableDebtArbUSDCn)",
+          "address": "0xf611aEb5013fD2c0511c9CD55c7dc5C1140741A6",
+          "citation": "book-usdcn-vtoken",
+          "proxy": {
+            "code_size": 2015,
+            "code_head": "0x60806040526004361061004a5760003560e01c80633659cfe614610054578063",
+            "dispatcher_selectors": [
+              {
+                "signature": "implementation()",
+                "selector": "0x5c60da1b",
+                "push4_found": true
+              },
+              {
+                "signature": "upgradeTo(address)",
+                "selector": "0x3659cfe6",
+                "push4_found": true
+              },
+              {
+                "signature": "upgradeToAndCall(address,bytes)",
+                "selector": "0x4f1ef286",
+                "push4_found": true
+              },
+              {
+                "signature": "admin()",
+                "selector": "0xf851a440",
+                "push4_found": true
+              },
+              {
+                "signature": "changeAdmin(address)",
+                "selector": "0x8f283970",
+                "push4_found": false
+              }
+            ]
+          },
+          "slots": {
+            "eip1967": "0x000000000000000000000000c0442c25fe517ac37d6a0d485446307d97d24712",
+            "zeppelinos": "0x0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "implementation_slot": "eip1967",
+          "implementation": {
+            "address": "0xC0442C25FE517ac37D6a0D485446307D97d24712",
+            "code_size": 7198
+          },
+          "edge": false
+        },
+        {
+          "key": "usdc",
+          "label": "USDC (native, Circle)",
+          "address": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+          "citation": "book-usdcn",
+          "proxy": {
+            "code_size": 1852,
+            "code_head": "0x60806040526004361061005a5760003560e01c80635c60da1b11610043578063",
+            "dispatcher_selectors": [
+              {
+                "signature": "implementation()",
+                "selector": "0x5c60da1b",
+                "push4_found": true
+              },
+              {
+                "signature": "upgradeTo(address)",
+                "selector": "0x3659cfe6",
+                "push4_found": true
+              },
+              {
+                "signature": "upgradeToAndCall(address,bytes)",
+                "selector": "0x4f1ef286",
+                "push4_found": true
+              },
+              {
+                "signature": "admin()",
+                "selector": "0xf851a440",
+                "push4_found": true
+              },
+              {
+                "signature": "changeAdmin(address)",
+                "selector": "0x8f283970",
+                "push4_found": true
+              }
+            ]
+          },
+          "slots": {
+            "eip1967": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "zeppelinos": "0x00000000000000000000000086e721b43d4ecfa71119dd38c0f938a75fdb57b3"
+          },
+          "implementation_slot": "zeppelinos",
+          "implementation": {
+            "address": "0x86E721b43d4ECFa71119Dd38c0f938A75Fdb57B3",
+            "code_size": 23464
+          },
+          "edge": true
+        },
+        {
+          "key": "usdce",
+          "label": "USDC.e (bridged)",
+          "address": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+          "citation": "book-usdce",
+          "proxy": {
+            "code_size": 2092,
+            "code_head": "0x60806040526004361061004e5760003560e01c80633659cfe614610065578063",
+            "dispatcher_selectors": [
+              {
+                "signature": "implementation()",
+                "selector": "0x5c60da1b",
+                "push4_found": true
+              },
+              {
+                "signature": "upgradeTo(address)",
+                "selector": "0x3659cfe6",
+                "push4_found": true
+              },
+              {
+                "signature": "upgradeToAndCall(address,bytes)",
+                "selector": "0x4f1ef286",
+                "push4_found": true
+              },
+              {
+                "signature": "admin()",
+                "selector": "0xf851a440",
+                "push4_found": true
+              },
+              {
+                "signature": "changeAdmin(address)",
+                "selector": "0x8f283970",
+                "push4_found": true
+              }
+            ]
+          },
+          "slots": {
+            "eip1967": "0x0000000000000000000000001efb3f88bc88f03fd1804a5c53b7141bbef5ded8",
+            "zeppelinos": "0x0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "implementation_slot": "eip1967",
+          "implementation": {
+            "address": "0x1eFB3f88Bc88f03FD1804A5C53b7141bbEf5dED8",
+            "code_size": 12930
+          },
+          "edge": false
+        }
+      ],
+      "edge_note": "Native USDC keeps its implementation pointer in the ZeppelinOS slot, not the EIP-1967 slot. Tools that only read EIP-1967 (for example `cast implementation`) report no implementation at all."
+    },
+    {
+      "id": "books",
+      "title": "Open the books",
+      "call": {
+        "to": "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
+        "function": "getReserveData(address)",
+        "argument": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+        "selector": "0x35ea6a75",
+        "calldata": "0x35ea6a75000000000000000000000000af88d065e77c8cc2239327c5edb3a432268e5831",
+        "block_tag": "0x1e196c8c",
+        "returndata": "0x100000000000000000000103e800ee6b28000d693a4003e8850629041e781d4c000000000000000000000000000000000000000003cea2840c4e30285542b8b5000000000000000000000000000000000000000000162d96b677fa34fe7e5e0b0000000000000000000000000000000000000000040360a7c94b6dccbd71f3e60000000000000000000000000000000000000000001e194faa6af658ed86e4bd0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006aa78afb000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000724dc807b04555b71ed48a6896b6f41593b8c637000000000000000000000000d94112b5b62d53c9402e7a60289c6810def1dc9b000000000000000000000000f611aeb5013fd2c0511c9cd55c7dc5c1140741a6000000000000000000000000429f16dba3b9e1900087cbaa7b50d38bc60fb73f0000000000000000000000000000000000000000000000000000000fc27c355a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "returndata_bytes": 480,
+        "word_count": 15
+      },
+      "fields": [
+        {
+          "index": 0,
+          "name": "configuration",
+          "type": "uint256",
+          "word": "0x100000000000000000000103e800ee6b28000d693a4003e8850629041e781d4c",
+          "raw": "7237005577332262213973186942896424937551795037297819859365743234882012192076",
+          "note": "bitmap of risk parameters and flags (decoded below)",
+          "decoded": "7237005577332262213973186942896424937551795037297819859365743234882012192076"
+        },
+        {
+          "index": 1,
+          "name": "liquidityIndex",
+          "type": "uint128",
+          "word": "0x000000000000000000000000000000000000000003cea2840c4e30285542b8b5",
+          "raw": "1178261207531790554775074997",
+          "note": null,
+          "decoded": {
+            "raw": "1178261207531790554775074997",
+            "unit": "ray (27 implied decimals)",
+            "value": "1.178261207531790554775074997"
+          }
+        },
+        {
+          "index": 2,
+          "name": "currentLiquidityRate",
+          "type": "uint128",
+          "word": "0x000000000000000000000000000000000000000000162d96b677fa34fe7e5e0b",
+          "raw": "26811654683114774957284875",
+          "note": null,
+          "decoded": {
+            "raw": "26811654683114774957284875",
+            "unit": "ray (27 implied decimals) per year",
+            "fraction": "0.026811654683114774957284875",
+            "percent_apr": "2.6811654683114774957284875",
+            "percent_apy_derived": "2.717432",
+            "apy_formula": "(1 + APR / 31536000)^31536000 - 1"
+          }
+        },
+        {
+          "index": 3,
+          "name": "variableBorrowIndex",
+          "type": "uint128",
+          "word": "0x0000000000000000000000000000000000000000040360a7c94b6dccbd71f3e6",
+          "raw": "1242023259037647708854809574",
+          "note": null,
+          "decoded": {
+            "raw": "1242023259037647708854809574",
+            "unit": "ray (27 implied decimals)",
+            "value": "1.242023259037647708854809574"
+          }
+        },
+        {
+          "index": 4,
+          "name": "currentVariableBorrowRate",
+          "type": "uint128",
+          "word": "0x0000000000000000000000000000000000000000001e194faa6af658ed86e4bd",
+          "raw": "36387303323190635207779517",
+          "note": null,
+          "decoded": {
+            "raw": "36387303323190635207779517",
+            "unit": "ray (27 implied decimals) per year",
+            "fraction": "0.036387303323190635207779517",
+            "percent_apr": "3.6387303323190635207779517",
+            "percent_apy_derived": "3.705742",
+            "apy_formula": "(1 + APR / 31536000)^31536000 - 1"
+          }
+        },
+        {
+          "index": 5,
+          "name": "currentStableBorrowRate",
+          "type": "uint128",
+          "word": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "raw": "0",
+          "note": "deprecated since v3.2: the getter returns 0 (storage now holds `deficit` here)",
+          "decoded": "0"
+        },
+        {
+          "index": 6,
+          "name": "lastUpdateTimestamp",
+          "type": "uint40",
+          "word": "0x000000000000000000000000000000000000000000000000000000006aa78afb",
+          "raw": "1789364987",
+          "note": null,
+          "decoded": {
+            "iso": "2026-09-14T05:49:47Z",
+            "seconds_before_block": 524
+          }
+        },
+        {
+          "index": 7,
+          "name": "id",
+          "type": "uint16",
+          "word": "0x000000000000000000000000000000000000000000000000000000000000000c",
+          "raw": "12",
+          "note": null,
+          "decoded": "12"
+        },
+        {
+          "index": 8,
+          "name": "aTokenAddress",
+          "type": "address",
+          "word": "0x000000000000000000000000724dc807b04555b71ed48a6896b6f41593b8c637",
+          "raw": "652559530327671618494870864823579735620830414391",
+          "note": null,
+          "decoded": "0x724dc807b04555b71ed48a6896b6F41593b8C637"
+        },
+        {
+          "index": 9,
+          "name": "stableDebtTokenAddress",
+          "type": "address",
+          "word": "0x000000000000000000000000d94112b5b62d53c9402e7a60289c6810def1dc9b",
+          "raw": "1240302175561087699613303322957225740638914469019",
+          "note": "not reserve storage: provider.getAddress(\"MOCK_STABLE_DEBT\")",
+          "decoded": "0xd94112B5B62d53C9402e7A60289c6810dEF1dC9B"
+        },
+        {
+          "index": 10,
+          "name": "variableDebtTokenAddress",
+          "type": "address",
+          "word": "0x000000000000000000000000f611aeb5013fd2c0511c9cd55c7dc5c1140741a6",
+          "raw": "1404806061421560699768337356524769373396731904422",
+          "note": null,
+          "decoded": "0xf611aEb5013fD2c0511c9CD55c7dc5C1140741A6"
+        },
+        {
+          "index": 11,
+          "name": "interestRateStrategyAddress",
+          "type": "address",
+          "word": "0x000000000000000000000000429f16dba3b9e1900087cbaa7b50d38bc60fb73f",
+          "raw": "380341200570697945272792020190230907678037620543",
+          "note": "not storage: an immutable compiled into the Pool implementation",
+          "decoded": "0x429F16dBA3B9e1900087Cbaa7b50D38Bc60fB73F"
+        },
+        {
+          "index": 12,
+          "name": "accruedToTreasury",
+          "type": "uint128",
+          "word": "0x0000000000000000000000000000000000000000000000000000000fc27c355a",
+          "raw": "67687429466",
+          "note": "scaled units, not USDC",
+          "decoded": "67687429466"
+        },
+        {
+          "index": 13,
+          "name": "unbacked",
+          "type": "uint128",
+          "word": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "raw": "0",
+          "note": "deprecated since v3.4: the getter returns 0",
+          "decoded": "0"
+        },
+        {
+          "index": 14,
+          "name": "isolationModeTotalDebt",
+          "type": "uint128",
+          "word": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "raw": "0",
+          "note": "deprecated since v3.7: the getter returns 0",
+          "decoded": "0"
+        }
+      ],
+      "rates": {
+        "supply": {
+          "field": "currentLiquidityRate",
+          "raw": "26811654683114774957284875",
+          "unit": "ray (27 implied decimals) per year",
+          "fraction": "0.026811654683114774957284875",
+          "percent_apr": "2.6811654683114774957284875",
+          "percent_apy_derived": "2.717432",
+          "apy_formula": "(1 + APR / 31536000)^31536000 - 1"
+        },
+        "borrow": {
+          "field": "currentVariableBorrowRate",
+          "raw": "36387303323190635207779517",
+          "unit": "ray (27 implied decimals) per year",
+          "fraction": "0.036387303323190635207779517",
+          "percent_apr": "3.6387303323190635207779517",
+          "percent_apy_derived": "3.705742",
+          "apy_formula": "(1 + APR / 31536000)^31536000 - 1"
+        }
+      },
+      "risk_params": [
+        {
+          "name": "ltv",
+          "bits": "0-15",
+          "hex": "1d4c",
+          "raw": 7500,
+          "unit": "bps",
+          "human": "75.00 %",
+          "risk_param": true
+        },
+        {
+          "name": "liquidationThreshold",
+          "bits": "16-31",
+          "hex": "1e78",
+          "raw": 7800,
+          "unit": "bps",
+          "human": "78.00 %",
+          "risk_param": true
+        },
+        {
+          "name": "liquidationBonus",
+          "bits": "32-47",
+          "hex": "2904",
+          "raw": 10500,
+          "unit": "bps",
+          "human": "105.00 %",
+          "risk_param": true
+        }
+      ],
+      "configuration": {
+        "word": "0x100000000000000000000103e800ee6b28000d693a4003e8850629041e781d4c",
+        "raw": "7237005577332262213973186942896424937551795037297819859365743234882012192076",
+        "source": "https://github.com/aave-dao/aave-v3-origin/blob/v3.7.0/src/contracts/protocol/libraries/configuration/ReserveConfiguration.sol#L13-L53",
+        "fields": [
+          {
+            "name": "ltv",
+            "bits": "0-15",
+            "hex": "1d4c",
+            "raw": 7500,
+            "unit": "bps",
+            "human": "75.00 %",
+            "risk_param": true
+          },
+          {
+            "name": "liquidationThreshold",
+            "bits": "16-31",
+            "hex": "1e78",
+            "raw": 7800,
+            "unit": "bps",
+            "human": "78.00 %",
+            "risk_param": true
+          },
+          {
+            "name": "liquidationBonus",
+            "bits": "32-47",
+            "hex": "2904",
+            "raw": 10500,
+            "unit": "bps",
+            "human": "105.00 %",
+            "risk_param": true
+          },
+          {
+            "name": "decimals",
+            "bits": "48-55",
+            "hex": "06",
+            "raw": 6,
+            "unit": "decimals",
+            "human": "6",
+            "risk_param": false
+          },
+          {
+            "name": "reserveFactor",
+            "bits": "64-79",
+            "hex": "03e8",
+            "raw": 1000,
+            "unit": "bps",
+            "human": "10.00 %",
+            "risk_param": false
+          },
+          {
+            "name": "borrowCap",
+            "bits": "80-115",
+            "hex": "00d693a40",
+            "raw": 225000000,
+            "unit": "whole tokens",
+            "human": "225,000,000",
+            "risk_param": false
+          },
+          {
+            "name": "supplyCap",
+            "bits": "116-151",
+            "hex": "00ee6b280",
+            "raw": 250000000,
+            "unit": "whole tokens",
+            "human": "250,000,000",
+            "risk_param": false
+          },
+          {
+            "name": "liquidationProtocolFee",
+            "bits": "152-167",
+            "hex": "03e8",
+            "raw": 1000,
+            "unit": "bps",
+            "human": "10.00 %",
+            "risk_param": false
+          }
+        ],
+        "flags_byte": {
+          "bits": "56-63",
+          "hex": "85",
+          "binary": "10000101",
+          "flags": [
+            {
+              "bit": 56,
+              "name": "active",
+              "value": 1
+            },
+            {
+              "bit": 57,
+              "name": "frozen",
+              "value": 0
+            },
+            {
+              "bit": 58,
+              "name": "borrowingEnabled",
+              "value": 1
+            },
+            {
+              "bit": 59,
+              "name": "unused (pre-3.2 stableBorrowRateEnabled)",
+              "value": 0
+            },
+            {
+              "bit": 60,
+              "name": "paused",
+              "value": 0
+            },
+            {
+              "bit": 61,
+              "name": "unused (pre-3.7 borrowableInIsolation)",
+              "value": 0
+            },
+            {
+              "bit": 62,
+              "name": "unused (pre-3.7 siloedBorrowing)",
+              "value": 0
+            },
+            {
+              "bit": 63,
+              "name": "flashLoanEnabled",
+              "value": 1
+            }
+          ]
+        },
+        "holes": [
+          {
+            "bits": "168-175",
+            "name": "pre-3.2 eModeCategory",
+            "raw": 1
+          },
+          {
+            "bits": "176-211",
+            "name": "pre-3.4 unbackedMintCap",
+            "raw": 0
+          },
+          {
+            "bits": "212-251",
+            "name": "pre-3.7 debtCeiling",
+            "raw": 0
+          },
+          {
+            "bits": "252-252",
+            "name": "virtualAccActive (deprecated in v3.4)",
+            "raw": 1
+          },
+          {
+            "bits": "253-255",
+            "name": "unused",
+            "raw": 0
+          }
+        ]
+      },
+      "last_update": {
+        "raw": "1789364987",
+        "iso": "2026-09-14T05:49:47Z",
+        "seconds_before_block": 524,
+        "block_timestamp": 1789365511
+      }
+    },
+    {
+      "id": "memory",
+      "title": "Read through to raw memory",
+      "proxy": {
+        "address": "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
+        "implementation": "0xF05Fd3cC911b4c5E36e53c00354F645E22922C9A",
+        "slot0_word": "0x000000000000000000000000000000000000000000000000000000000000000b",
+        "revision_in_storage": 11,
+        "revision_in_code": 11,
+        "source_tag": "v3.7.0"
+      },
+      "layout": [
+        {
+          "slot": "0",
+          "name": "lastInitializedRevision",
+          "type": "uint256",
+          "contract": "VersionedInitializable",
+          "citation": "versioned-initializable"
+        },
+        {
+          "slot": "1",
+          "name": "initializing",
+          "type": "bool",
+          "contract": "VersionedInitializable",
+          "citation": "versioned-initializable"
+        },
+        {
+          "slot": "2-51",
+          "name": "______gap",
+          "type": "uint256[50]",
+          "contract": "VersionedInitializable",
+          "citation": "versioned-initializable"
+        },
+        {
+          "slot": "52",
+          "name": "_reserves",
+          "type": "mapping(address => ReserveData)",
+          "contract": "PoolStorage",
+          "citation": "pool-storage"
+        }
+      ],
+      "mapping": {
+        "key": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+        "declared_slot": 52,
+        "preimage": "0x000000000000000000000000af88d065e77c8cc2239327c5edb3a432268e58310000000000000000000000000000000000000000000000000000000000000034",
+        "base": "0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af4f",
+        "field_offset": 1,
+        "slot": "0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af50",
+        "struct_order": [
+          "base+0 configuration (uint256)",
+          "base+1 liquidityIndex (uint128) | currentLiquidityRate (uint128)"
+        ]
+      },
+      "storage": {
+        "method": "eth_getStorageAt",
+        "address": "0x794a61358D6845594F94dc1DB02A252b5b4814aD",
+        "slot": "0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af50",
+        "block_tag": "0x1e196c8c",
+        "word": "0x0000000000162d96b677fa34fe7e5e0b0000000003cea2840c4e30285542b8b5",
+        "high_hex": "0x0000000000162d96b677fa34fe7e5e0b",
+        "low_hex": "0x0000000003cea2840c4e30285542b8b5",
+        "high": "26811654683114774957284875",
+        "low": "1178261207531790554775074997"
+      },
+      "comparisons": [
+        {
+          "field": "liquidityIndex",
+          "bits": "0-127 (low half)",
+          "hex": "0x0000000003cea2840c4e30285542b8b5",
+          "storage": "1178261207531790554775074997",
+          "function": "1178261207531790554775074997",
+          "match": true
+        },
+        {
+          "field": "currentLiquidityRate",
+          "bits": "128-255 (high half)",
+          "hex": "0x0000000000162d96b677fa34fe7e5e0b",
+          "storage": "26811654683114774957284875",
+          "function": "26811654683114774957284875",
+          "match": true
+        }
+      ],
+      "controls": {
+        "implementation_storage": {
+          "address": "0xF05Fd3cC911b4c5E36e53c00354F645E22922C9A",
+          "slot": "0xeca9b25e580a9539f66a1e310f07d98e6be14b94407490b048d1fe024e73af50",
+          "word": "0x0000000000000000000000000000000000000000000000000000000000000000",
+          "is_zero": true
+        },
+        "trace": {
+          "available": true,
+          "tracer": "prestateTracer",
+          "pool_slots_read": 8,
+          "read_slot": true,
+          "value_at_read": "0x0000000000162d96b677fa34fe7e5e0b0000000003cea2840c4e30285542b8b5",
+          "value_matches": true
+        }
+      }
+    }
+  ]
+}

@@ -82,6 +82,7 @@ timestamp=$((timestamp_q))
   fi
   echo "# pinned_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo "FORK_BLOCK_NUMBER=${number}"
+  echo "FORK_BLOCK_HASH=${hash}"
 } > fork.env
 
 echo "wrote fork.env:"

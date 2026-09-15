@@ -81,6 +81,89 @@ services:
           memory: 6g
     memswap_limit: 6g
 
+  # ---------------------------------------------------------------------------------------------------
+  # learn/: interactive teaching page (profile "learn").  Start: docker compose --profile learn up -d --build
+  # ---------------------------------------------------------------------------------------------------
+  learn-api:
+    profiles: ["learn"]
+    build: ./learn/api
+    image: defi-sec-lab/learn-api:local
+    container_name: defi-sec-lab-learn-api
+    env_file:
+      - path: .env        # RPC_URL (secret): live-chain view + real-chain hash check. Never logged or returned.
+        required: false   # without it the API still serves the pinned fork
+        format: raw
+      - path: fork.env    # FORK_BLOCK_NUMBER / FORK_BLOCK_HASH
+        required: false
+    environment:
+      FORK_RPC_URL: http://anvil:8545
+      INSPECTOR_BIND_ALIAS: inspector-api
+    networks:
+      default: {}                   # egress: anvil and RPC_URL. The API does NOT listen on this interface.
+      learn-internal:
+        aliases: [inspector-api]    # the only address uvicorn binds to (see learn/api/entrypoint.sh)
+    # NO ports: never published to the host.
+    depends_on:
+      anvil:
+        condition: service_healthy
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    init: true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket,urllib.request; urllib.request.urlopen('http://%s:8000/healthz' % socket.gethostbyname('inspector-api'), timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+      start_interval: 2s
+    # AGENTS.md hard rule 4: never remove or raise these without the owner asking.
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1g
+    memswap_limit: 1g
+
+  learn-web:
+    profiles: ["learn"]
+    build: ./learn/web
+    image: defi-sec-lab/learn-web:local
+    container_name: defi-sec-lab-learn-web
+    environment:
+      INSPECTOR_API_URL: http://inspector-api:8000   # server-side only; the browser never talks to the API
+    networks:
+      default: {}          # needed to publish the page port
+      learn-internal: {}   # reaches the API by its internal alias
+    ports:
+      - "127.0.0.1:3000:3000"   # host loopback only
+    depends_on:
+      learn-api:
+        condition: service_started
+        required: false    # the page still renders from the committed snapshot without the API
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/.next/cache:uid=1000,gid=1000
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    init: true
+    # AGENTS.md hard rule 4: never remove or raise these without the owner asking.
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1g
+    memswap_limit: 1g
+
+networks:
+  learn-internal:
+    internal: true   # no route to the outside world
+    driver_opts:
+      # "isolated": the host gets no address on this bridge, so even the host cannot reach the API's port.
+      com.docker.network.bridge.gateway_mode_ipv4: isolated
+
 volumes:
   anvil-home:
   foundry-home:

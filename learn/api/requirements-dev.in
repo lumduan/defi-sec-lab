@@ -1,0 +1,3 @@
+# learn-api test dependencies (runtime + pytest).
+-r requirements.in
+pytest==9.1.1
