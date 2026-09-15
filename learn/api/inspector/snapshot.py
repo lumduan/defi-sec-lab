@@ -1,7 +1,7 @@
 """Print the inspection JSON (for learn/web/data/snapshot.json) or the recorded RPC fixtures (for tests).
 
     python -m inspector.snapshot              > ../web/data/snapshot.json
-    python -m inspector.snapshot --fixtures   > tests/fixtures/rpc-fork.json
+    python -m inspector.snapshot --fixtures   > tests/fixtures/rpc-fork-<FORK_BLOCK_NUMBER>.json
 
 Fixtures record only (client label, method, params, result). Endpoint URLs are never written.
 """

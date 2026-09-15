@@ -1,0 +1,9 @@
+# Never send secrets or local build output into the image. Next's standalone build copies .env* files,
+# so every .env variant is excluded here.
+.env
+.env.*
+node_modules
+.next
+npm-debug.log*
+*.tsbuildinfo
+next-env.d.ts

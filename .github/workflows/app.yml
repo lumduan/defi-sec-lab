@@ -36,3 +36,27 @@ jobs:
 
       - name: Test (offline, replays recorded fork RPC responses)
         run: python -m pytest
+
+  web-build:
+    name: web-build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: learn/web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+
+      - name: Install (lockfile only, no install scripts)
+        run: npm ci --ignore-scripts
+
+      - name: Build (type-checks; the page renders from the committed snapshot when no API is reachable)
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: npm run build

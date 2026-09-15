@@ -12,24 +12,28 @@ understand the mechanism and the input/output relationships behind a number, not
 | Path | Purpose |
 |---|---|
 | [`AGENTS.md`](AGENTS.md) | Operating rules for humans and coding agents: hard safety rules and working style. [`CLAUDE.md`](CLAUDE.md) imports it for Claude Code. |
-| [`docker-compose.yml`](docker-compose.yml) | `anvil` (the fork) and `foundry` (the toolbox). Each container is capped at 6 GB and 2 CPUs with no swap; the fork's RPC is bound to `127.0.0.1:8545`. |
+| [`docker-compose.yml`](docker-compose.yml) | `anvil` (the fork) and `foundry` (the toolbox), each capped at 6 GB and 2 CPUs with no swap; the fork's RPC is bound to `127.0.0.1:8545`. The `learn` profile adds `learn-api` and `learn-web` (1 GB / 1 CPU each). |
 | [`fork.env`](fork.env) | The committed fork pin: block number, block hash, timestamp, and L1 block. |
 | [`scripts/pin-fork-block.sh`](scripts/pin-fork-block.sh) | Re-pins to the current latest block. Refuses unless the endpoint reports chain id 42161. |
 | [`scripts/logs.sh`](scripts/logs.sh) | `docker compose logs` with every URL masked, because RPC URLs can carry API keys. |
 | [`foundry.toml`](foundry.toml) | Pinned solc. The only RPC alias is `anvil`. Forge's fork storage caching is off. |
 | [`script/ReadAaveReserve.s.sol`](script/ReadAaveReserve.s.sol) | Read-only reader for one Aave V3 reserve: raw slots → decoded fields → cross-checks against the protocol's getters → totals rebuilt from raw state. |
 | [`notes/`](notes/) | The lab notebook. Entries record evidence (commands, raw words, source links) and leave the interpretation to the owner. |
+| [`learn/`](learn/) | Interactive teaching page for the first entry: a Next.js app ([`learn/web`](learn/web)) and an internal-only FastAPI inspector ([`learn/api`](learn/api)), tested and built in [`app.yml`](.github/workflows/app.yml). See [Learning page](#learning-page-learn). |
 | [`.gitleaks.toml`](.gitleaks.toml), [`.pre-commit-config.yaml`](.pre-commit-config.yaml), [`.secrets.baseline`](.secrets.baseline), [`.githooks/`](.githooks/), [`tools/hooks/`](tools/hooks/), [`.github/workflows/security.yml`](.github/workflows/security.yml) | Secret-scanning controls. See [Security controls](#security-controls-enforced-not-assumed). |
 
 ## How it fits together
 
 ```
  host                            docker compose project "defi-sec-lab"
- localhost:8545 ──(127.0.0.1)──▶ anvil    6g/2cpu   lazily fetches state AT the pinned block ──▶ upstream Arbitrum RPC (read-only)
- docker compose exec foundry ──▶ foundry  6g/2cpu   ETH_RPC_URL=http://anvil:8545 (talks to the fork only)
+ localhost:8545 ──(127.0.0.1)──▶ anvil      6g/2cpu   lazily fetches state AT the pinned block ──▶ upstream Arbitrum RPC (read-only)
+ docker compose exec foundry ──▶ foundry    6g/2cpu   ETH_RPC_URL=http://anvil:8545 (talks to the fork only)
+ localhost:3000 ──(127.0.0.1)──▶ learn-web  1g/1cpu   profile "learn": the teaching page
+                                 learn-api  1g/1cpu   profile "learn": internal network only, no host port
 ```
 
-- **Secret:** the upstream `RPC_URL` lives in a gitignored `.env` and is passed only to the anvil container.
+- **Secret:** the upstream `RPC_URL` lives in a gitignored `.env`. It is passed to `anvil` and, with the `learn`
+  profile, to `learn-api`. Both use it read-only.
 - **Pin:** the fork is pinned to a block number in `fork.env`, so every read can be reproduced.
 - **Cache:** anvil caches the state it fetches in a Docker volume and writes it to disk on a graceful stop
   (`docker compose stop` / `down`).
@@ -92,6 +96,58 @@ Mechanisms the note shows with evidence:
 - **Derived totals.** Both totals were rebuilt from raw slots with Aave's own rounding rules and match exactly (diff 0).
 - **Arbitrum specifics.** Inside the EVM, `block.number` is the L1 block; the L2 block number comes from the `ArbSys`
   precompile.
+
+## Learning page (`learn/`)
+
+An interactive page that walks through the first entry as a four-stage flowchart. Each stage is a card; click it
+to open the mechanism, every raw value, and the sources.
+
+| Stage | Question | What it shows |
+|---|---|---|
+| 1 | Are we in the real bank? | Chain id 42161, the pinned block, its hash checked against `fork.env` and against the real chain, the anvil version |
+| 2 | Storefront vs backroom | Proxy vs implementation code size, drawn to scale (Pool: 2,400 vs 22,442 bytes). Edge case: native USDC keeps its implementation address in the ZeppelinOS slot, not EIP-1967 |
+| 3 | Open the books | `getReserveData(USDC)`: the 27-digit ray integers first, then ÷ 10²⁷, then %. LTV 75 %, liquidation threshold 78 %, liquidation bonus 105 % from the configuration bitmap |
+| 4 | Read through to raw memory | `liquidityIndex` from the getter vs from the raw storage word, where two uint128 fields share one slot |
+
+```bash
+docker compose --profile learn up -d --build     # anvil + learn-api + learn-web
+# browse to http://127.0.0.1:3000
+docker compose --profile learn down
+```
+
+```
+ browser ──127.0.0.1:3000──▶ learn-web (Next.js)   fetches server-side; the browser never talks to the API
+                               │  network learn-internal: internal, isolated gateway → no host route, no published port
+                               ▼
+                             learn-api (FastAPI)   listens only on its learn-internal address
+                               ├─ "Pinned fork" (default) ──▶ anvil at the fork.env block (+ hash check via RPC_URL)
+                               └─ "Live chain"            ──▶ RPC_URL at the latest block
+```
+
+- **Read-only by construction.** The API's RPC client refuses any method outside `eth_chainId`, `eth_blockNumber`,
+  `eth_getBlockByNumber`, `eth_getCode`, `eth_getStorageAt`, `eth_call`, `web3_clientVersion` (plus
+  `debug_traceCall` on the fork) before anything is sent.
+- **The endpoint never leaves the API.** `RPC_URL` is not logged, not returned, and is redacted from error messages.
+  The tests assert this with a fake endpoint.
+- **Works without the backend.** [`learn/web/data/snapshot.json`](learn/web/data/snapshot.json) is the committed
+  pinned-fork inspection. If `learn-api` is down, the page renders from it and says so.
+
+The API tests run offline: they replay RPC responses recorded from the fork, so they need no anvil and no `RPC_URL`.
+
+```bash
+docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -v "$PWD/learn:/learn:ro" \
+  -w /learn/api python:3.14-slim sh -c 'python -m venv /tmp/venv && /tmp/venv/bin/pip install -q --require-hashes \
+  -r requirements-dev.txt && /tmp/venv/bin/python -m pytest -p no:cacheprovider'
+```
+
+The snapshot, the recorded fixtures, and the tests' expected values all belong to the committed pin (block
+504,982,668, the numbers in `notes/00`). If the committed pin ever moves, regenerate them together:
+
+```bash
+docker compose --profile learn exec -T learn-api python -m inspector.snapshot > learn/web/data/snapshot.json
+docker compose --profile learn exec -T learn-api python -m inspector.snapshot --fixtures \
+  > learn/api/tests/fixtures/rpc-fork-<block>.json     # then update the pin and expected values in learn/api/tests
+```
 
 ## Toolchain pin
 
